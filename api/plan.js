@@ -36,7 +36,7 @@ export default async function handler(req, res) {
       issue: { number: issue.number, title: issue.title, url: issue.url },
       plan: { summary: plan.summary, difficulty: plan.difficulty, run_locally: plan.run_locally, how_to_test: plan.how_to_test, pr_tips: plan.pr_tips },
       steps: v.steps,
-      stats: { total: v.total, verified: v.verified, caught: caught.length, remaining: v.missing.length, retried },
+      stats: { total: v.total, verified: v.verified, caught: caught.length, remaining: v.missing.length, retried, caughtPaths: caught },
     };
     cache.set(key, out);
     res.status(200).json(out);
