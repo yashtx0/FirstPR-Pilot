@@ -33,3 +33,5 @@ button:disabled{opacity:.5;cursor:wait}
 pre{background:var(--ink);color:#fff;padding:14px;border-radius:6px;overflow-x:auto}
 @keyframes tick{from{opacity:0;transform:translateX(-6px)}}
 @media (prefers-reduced-motion:reduce){.ledger li{animation:none}}
+.ledger li span:nth-of-type(1){min-width:0;overflow-wrap:anywhere}
+.ledger li span:last-child{flex:none;white-space:nowrap}
