@@ -18,7 +18,9 @@ export default async function handler(req, res) {
     if (cache.has(key)) return res.status(200).json({ ...cache.get(key), cached: true });
 
     const ctx = await fetchContext(owner, name);
-    let plan = extractJson(await callGroq(chosen, buildMessages(ctx, issue)));
+    let plan;
+    try { plan = extractJson(await callGroq(chosen, buildMessages(ctx, issue))); }
+    catch (e) { if (!/did not return a plan|JSON/.test(e.message)) throw e; plan = extractJson(await callGroq(chosen, buildMessages(ctx, issue))); } // one retry on unparseable output
     let v = verifyPlan(plan, ctx);
     const caught = v.missing;
     let retried = false;
