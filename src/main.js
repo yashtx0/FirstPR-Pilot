@@ -27,7 +27,7 @@ $('#form').addEventListener('submit', async (e) => {
   try {
     const { issues, source } = await api({ action: 'issues', repo: $('#repo').value });
     if (!issues.length) return status('This repo has no open issues. Try another one.', true);
-    status(`Showing ${issues.length} issues (${source}). Pick one.`);
+    status(`Showing ${issues.length} issue${issues.length > 1 ? 's' : ''} (${source}). Pick one.`);
     const list = issues.map((i, idx) => el('label', { class: 'issue' },
       el('input', { type: 'radio', name: 'issue', value: i.number, ...(idx === 0 ? { checked: '' } : {}) }),
       el('span', {}, `#${i.number} ${i.title}`, el('br'), el('small', {}, i.labels.join(', ')))));
@@ -54,8 +54,12 @@ async function generate(btn) {
 
 function render(d) {
   const { stats } = d;
+  const uniq = new Map();
+  d.steps.forEach((s) => s.refs.forEach((r) => uniq.set(r.path, r.status)));
+  const total = uniq.size, verified = [...uniq.values()].filter((x) => x !== 'missing').length;
+  const paths = (stats.caughtPaths || []).join(', ');
   const note = stats.caught
-    ? `The first draft named ${stats.caught} file${stats.caught > 1 ? 's' : ''} that do not exist. ${stats.remaining ? `${stats.remaining} still could not be verified, so check them by hand.` : 'The plan was rewritten and now checks out.'}`
+    ? `The first draft named ${stats.caught} file${stats.caught > 1 ? 's' : ''} that ${stats.caught > 1 ? 'do' : 'does'} not exist${paths ? ': ' + paths : ''}. ${stats.remaining ? `${stats.remaining} still could not be verified, so check ${stats.remaining > 1 ? 'them' : 'it'} by hand.` : 'The plan was rewritten and now checks out.'}`
     : 'The first draft used only files that exist.';
   let n = 0;
   const steps = d.steps.map((s) => el('div', { class: 'step' },
@@ -68,7 +72,7 @@ function render(d) {
   $('#result').replaceChildren(
     el('h2', {}, `#${d.issue.number} ${d.issue.title}`),
     el('p', {}, d.plan.summary || '', ` Difficulty: ${d.plan.difficulty || 'unknown'}.`),
-    el('div', { class: 'summary' + (stats.remaining ? ' warn' : '') }, el('b', {}, `${stats.verified} of ${stats.total} file references verified.`), ' ' + note),
+    el('div', { class: 'summary' + (stats.remaining ? ' warn' : '') }, el('b', {}, `${verified} of ${total} unique files verified.`), ' ' + note),
     ...steps,
     (d.plan.run_locally || []).length ? el('div', {}, el('h3', {}, 'Run it locally'), el('pre', {}, d.plan.run_locally.join('\n'))) : null,
     d.plan.how_to_test ? el('div', {}, el('h3', {}, 'Test your change'), el('p', {}, d.plan.how_to_test)) : null,
